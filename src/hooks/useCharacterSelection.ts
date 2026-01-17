@@ -16,13 +16,11 @@ const difficultyToCharacter: Record<Difficulty, CharacterId> = {
 }
 
 export function useCharacterSelection(initialDifficulty: Difficulty = 'medium') {
-  const [difficulty, setDifficulty] = useState<Difficulty>(initialDifficulty)
   const [character, setCharacter] = useState<Character>(() =>
     getCharacterById(difficultyToCharacter[initialDifficulty])
   )
 
   const changeCharacter = useCallback((newDifficulty: Difficulty) => {
-    setDifficulty(newDifficulty)
     const characterId = difficultyToCharacter[newDifficulty]
     setCharacter(getCharacterById(characterId))
   }, [])
@@ -34,7 +32,6 @@ export function useCharacterSelection(initialDifficulty: Difficulty = 'medium') 
 
   return {
     character,
-    difficulty,
     changeCharacter,
     getCharacterForDifficulty,
   }

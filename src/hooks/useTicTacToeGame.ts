@@ -83,10 +83,10 @@ export function useTicTacToeGame(initialDifficulty: Difficulty = 'medium') {
               animationTimeoutRef.current = null
             }, MOVE_ANIMATION_DELAY_MS)
           }
+          aiMoveScheduledRef.current = false
         } catch {
           // AI move calculation failed - reset animation state
           setIsAnimating(false)
-        } finally {
           aiMoveScheduledRef.current = false
         }
       }, AI_MOVE_DELAY_MS)

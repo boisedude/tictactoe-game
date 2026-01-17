@@ -156,6 +156,18 @@ export function TicTacToeGame() {
         )}
       </button>
 
+      {/* Game Status - Screen Reader Announcement */}
+      <div aria-live="polite" className="sr-only">
+        {gameState.status === 'playing' && (
+          gameState.currentPlayer === 1
+            ? "Your turn"
+            : `${character.name}'s turn`
+        )}
+        {gameState.status === 'won' && gameState.winner === 1 && "You win!"}
+        {gameState.status === 'won' && gameState.winner === 2 && `${character.name} wins!`}
+        {gameState.status === 'draw' && "It's a draw!"}
+      </div>
+
       {/* Board */}
       <div className="mb-8">
         <Board

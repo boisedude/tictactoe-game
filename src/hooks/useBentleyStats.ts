@@ -18,14 +18,56 @@ export interface BentleyStats {
 
 const STORAGE_KEY = 'tictactoe-bentley-stats'
 
+/**
+ * Type guard to validate BentleyStats structure
+ * Protects against corrupted or malicious localStorage data
+ */
+function isValidBentleyStats(data: unknown): data is BentleyStats {
+  if (!data || typeof data !== 'object') {
+    return false
+  }
+
+  const stats = data as Partial<BentleyStats>
+
+  return (
+    typeof stats.gamesPlayed === 'number' &&
+    stats.gamesPlayed >= 0 &&
+    typeof stats.gamesWon === 'number' &&
+    stats.gamesWon >= 0 &&
+    typeof stats.gamesLost === 'number' &&
+    stats.gamesLost >= 0 &&
+    typeof stats.gamesTied === 'number' &&
+    stats.gamesTied >= 0 &&
+    typeof stats.currentTieStreak === 'number' &&
+    stats.currentTieStreak >= 0 &&
+    typeof stats.longestTieStreak === 'number' &&
+    stats.longestTieStreak >= 0 &&
+    typeof stats.totalMoves === 'number' &&
+    stats.totalMoves >= 0
+  )
+}
+
 function loadStats(): BentleyStats {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
-      return JSON.parse(stored)
+      const data = JSON.parse(stored)
+
+      // Validate data structure before using it
+      if (isValidBentleyStats(data)) {
+        return data
+      } else {
+        // Invalid Bentley stats data in localStorage - reset to defaults
+        localStorage.removeItem(STORAGE_KEY)
+      }
     }
   } catch {
-    // Failed to load Bentley stats - use defaults
+    // Failed to load Bentley stats - clear corrupted data and use defaults
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch {
+      // Ignore errors when trying to clear
+    }
   }
 
   return {

@@ -133,8 +133,8 @@ export function useLeaderboard() {
   }, [])
 
   const resetStats = useCallback(() => {
-    setStats({
-      playerName: stats.playerName,
+    setStats((prev) => ({
+      playerName: prev.playerName,
       wins: 0,
       losses: 0,
       draws: 0,
@@ -143,8 +143,8 @@ export function useLeaderboard() {
       totalGames: 0,
       fastestWin: null,
       perfectGames: 0,
-    })
-  }, [stats.playerName])
+    }))
+  }, [])
 
   return {
     stats,
