@@ -84,7 +84,7 @@ export const Board = memo(function Board({
               'bg-gradient-to-br from-slate-600/50 to-slate-700/50',
               'p-2'
             )}
-            style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, minmax(0, 1fr))` }}
+            style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, minmax(80px, 1fr))` }}
             role="grid"
             aria-label="Tic-Tac-Toe game board, 3 by 3 grid"
           >

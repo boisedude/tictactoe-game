@@ -49,7 +49,7 @@ export const Cell = memo(function Cell({
     <button
       type="button"
       className={cn(
-        'aspect-square w-full relative overflow-hidden',
+        'aspect-square w-full min-w-[80px] min-h-[80px] sm:min-w-[100px] sm:min-h-[100px] relative overflow-hidden',
         'flex items-center justify-center',
         'transition-all duration-300 ease-out',
         'focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-inset focus:z-10',
