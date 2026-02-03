@@ -35,6 +35,14 @@ export interface Move {
   player: Player
 }
 
+// Undo state snapshot (board state before a move)
+export interface UndoSnapshot {
+  board: Board
+  currentPlayer: Player
+  moveHistory: Move[]
+  lastMove?: Move
+}
+
 // Complete game state
 export interface GameState {
   board: Board
@@ -46,6 +54,7 @@ export interface GameState {
   moveHistory: Move[]
   lastMove?: Move
   winningLine?: Position[] // Positions that form the winning line
+  undoHistory: UndoSnapshot[] // Stack of states for undo functionality
 }
 
 // Leaderboard entry
@@ -59,11 +68,6 @@ export interface LeaderboardEntry {
   totalGames: number
   fastestWin: number | null // Minimum moves to win
   perfectGames: number // Games won without AI getting 2 in a row
-}
-
-// Saved game state
-export interface SavedGame extends GameState {
-  savedAt: number
 }
 
 // Win patterns - all possible winning combinations

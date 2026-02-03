@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react'
+import { STORAGE_KEY_BENTLEY_STATS } from '@/lib/storageKeys'
 
 export interface BentleyStats {
   gamesPlayed: number
@@ -15,8 +16,6 @@ export interface BentleyStats {
   longestTieStreak: number
   totalMoves: number
 }
-
-const STORAGE_KEY = 'tictactoe-bentley-stats'
 
 /**
  * Type guard to validate BentleyStats structure
@@ -49,7 +48,7 @@ function isValidBentleyStats(data: unknown): data is BentleyStats {
 
 function loadStats(): BentleyStats {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = localStorage.getItem(STORAGE_KEY_BENTLEY_STATS)
     if (stored) {
       const data = JSON.parse(stored)
 
@@ -58,13 +57,13 @@ function loadStats(): BentleyStats {
         return data
       } else {
         // Invalid Bentley stats data in localStorage - reset to defaults
-        localStorage.removeItem(STORAGE_KEY)
+        localStorage.removeItem(STORAGE_KEY_BENTLEY_STATS)
       }
     }
   } catch {
     // Failed to load Bentley stats - clear corrupted data and use defaults
     try {
-      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(STORAGE_KEY_BENTLEY_STATS)
     } catch {
       // Ignore errors when trying to clear
     }
@@ -83,7 +82,7 @@ function loadStats(): BentleyStats {
 
 function saveStats(stats: BentleyStats): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stats))
+    localStorage.setItem(STORAGE_KEY_BENTLEY_STATS, JSON.stringify(stats))
   } catch {
     // Failed to save Bentley stats to localStorage
   }

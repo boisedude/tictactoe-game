@@ -1,6 +1,7 @@
 /**
  * Character Selection Hook
  * Maps difficulty levels to characters and manages character state
+ * Reads ?character= URL parameter for arcade integration
  */
 
 import { useState, useCallback } from 'react'
@@ -15,12 +16,47 @@ const difficultyToCharacter: Record<Difficulty, CharacterId> = {
   hard: 'bentley',
 }
 
+// Map character IDs to difficulty levels
+const characterToDifficulty: Record<CharacterId, Difficulty> = {
+  bella: 'easy',
+  coop: 'medium',
+  bentley: 'hard',
+}
+
+// Valid character IDs
+const validCharacters: CharacterId[] = ['bella', 'coop', 'bentley']
+
+// Read character from URL parameter
+function getCharacterFromUrl(): CharacterId | null {
+  const params = new URLSearchParams(window.location.search)
+  const urlCharacter = params.get('character')
+  if (urlCharacter && validCharacters.includes(urlCharacter as CharacterId)) {
+    return urlCharacter as CharacterId
+  }
+  return null
+}
+
 export function useCharacterSelection(initialDifficulty: Difficulty = 'medium') {
-  const [character, setCharacter] = useState<Character>(() =>
-    getCharacterById(difficultyToCharacter[initialDifficulty])
-  )
+  const [character, setCharacter] = useState<Character>(() => {
+    // Priority: URL parameter > initial difficulty
+    const urlCharacter = getCharacterFromUrl()
+    if (urlCharacter) {
+      return getCharacterById(urlCharacter)
+    }
+    return getCharacterById(difficultyToCharacter[initialDifficulty])
+  })
+
+  // Track difficulty based on current character
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => {
+    const urlCharacter = getCharacterFromUrl()
+    if (urlCharacter) {
+      return characterToDifficulty[urlCharacter]
+    }
+    return initialDifficulty
+  })
 
   const changeCharacter = useCallback((newDifficulty: Difficulty) => {
+    setDifficulty(newDifficulty)
     const characterId = difficultyToCharacter[newDifficulty]
     setCharacter(getCharacterById(characterId))
   }, [])
@@ -32,6 +68,7 @@ export function useCharacterSelection(initialDifficulty: Difficulty = 'medium') 
 
   return {
     character,
+    difficulty,
     changeCharacter,
     getCharacterForDifficulty,
   }

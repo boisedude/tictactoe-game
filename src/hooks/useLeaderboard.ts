@@ -5,8 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import type { LeaderboardEntry } from '@/types/tictactoe.types'
-
-const STORAGE_KEY = 'tictactoe-leaderboard'
+import { STORAGE_KEY_LEADERBOARD } from '@/lib/storageKeys'
 const DEFAULT_PLAYER_NAME = 'Player'
 
 /**
@@ -42,7 +41,7 @@ function isValidLeaderboard(data: unknown): data is LeaderboardEntry {
 
 function getInitialLeaderboard(): LeaderboardEntry {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = localStorage.getItem(STORAGE_KEY_LEADERBOARD)
     if (stored) {
       const data = JSON.parse(stored)
 
@@ -51,13 +50,13 @@ function getInitialLeaderboard(): LeaderboardEntry {
         return data
       } else {
         // Invalid leaderboard data in localStorage - reset to defaults
-        localStorage.removeItem(STORAGE_KEY)
+        localStorage.removeItem(STORAGE_KEY_LEADERBOARD)
       }
     }
   } catch {
     // Failed to load leaderboard - clear corrupted data and use defaults
     try {
-      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(STORAGE_KEY_LEADERBOARD)
     } catch {
       // Ignore errors when trying to clear
     }
@@ -81,7 +80,7 @@ export function useLeaderboard() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(stats))
+      localStorage.setItem(STORAGE_KEY_LEADERBOARD, JSON.stringify(stats))
     } catch {
       // Failed to save leaderboard to localStorage - data will be lost on refresh
     }

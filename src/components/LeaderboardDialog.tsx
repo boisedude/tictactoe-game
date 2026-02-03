@@ -57,10 +57,15 @@ export function LeaderboardDialog({
           <DialogDescription>
             {isEditing ? (
               <div className="flex items-center gap-2 pt-2">
+                <label htmlFor="player-name-input" className="sr-only">
+                  Player name
+                </label>
                 <Input
+                  id="player-name-input"
                   value={playerName}
                   onChange={(e) => setPlayerName(e.target.value)}
                   placeholder="Enter your name"
+                  aria-label="Player name"
                   maxLength={20}
                   className="flex-1"
                 />
@@ -71,7 +76,7 @@ export function LeaderboardDialog({
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="text-left hover:underline focus:underline focus:outline-none"
+                className="text-left hover:underline focus:underline focus:outline-none rounded px-1 -mx-1 hover:bg-muted focus:bg-muted focus:ring-2 focus:ring-ring transition-colors"
               >
                 Player: {stats.playerName}
               </button>
@@ -178,7 +183,7 @@ function StatRow({
   highlight?: 'green' | 'red'
 }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
+    <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3 hover:bg-muted transition-colors">
       <span className="text-sm font-medium">{label}</span>
       <span
         className={`text-lg font-bold ${

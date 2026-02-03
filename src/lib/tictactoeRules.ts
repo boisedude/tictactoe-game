@@ -3,7 +3,7 @@
  * Implements standard Tic-Tac-Toe rules on a 3x3 board
  */
 
-import type { Board, Player, Position, Move, GameState } from '@/types/tictactoe.types'
+import type { Board, Player, Position, GameState } from '@/types/tictactoe.types'
 import { BOARD_SIZE, WIN_PATTERNS } from '@/types/tictactoe.types'
 
 /**
@@ -133,37 +133,8 @@ export function createInitialGameState(
     mode,
     difficulty,
     moveHistory: [],
+    undoHistory: [], // Initialize empty undo history
   }
-}
-
-/**
- * Counts marks for each player
- */
-export function countMarks(board: Board): {
-  xCount: number
-  oCount: number
-} {
-  let xCount = 0
-  let oCount = 0
-
-  for (let row = 0; row < BOARD_SIZE; row++) {
-    for (let col = 0; col < BOARD_SIZE; col++) {
-      const cell = board[row][col]
-      if (cell === 1) xCount++
-      else if (cell === 2) oCount++
-    }
-  }
-
-  return { xCount, oCount }
-}
-
-/**
- * Converts move to readable notation (e.g., "A1", "B2", "C3")
- */
-export function moveToNotation(move: Move): string {
-  const col = String.fromCharCode(65 + move.position.col) // A, B, C
-  const row = move.position.row + 1 // 1, 2, 3
-  return `${col}${row}`
 }
 
 /**

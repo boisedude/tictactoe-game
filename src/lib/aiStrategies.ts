@@ -14,6 +14,7 @@ import {
   isBoardFull,
   findWinningMove,
   getOpponent,
+  isEmpty,
 } from '@/lib/tictactoeRules'
 import {
   SCORE_AI_WIN,
@@ -154,10 +155,6 @@ function getMediumMove(board: Board, aiPlayer: Player): Position | null {
   return emptyPositions[Math.floor(Math.random() * emptyPositions.length)]
 }
 
-function isEmpty(board: Board, pos: Position): boolean {
-  return board[pos.row][pos.col] === null
-}
-
 // =============================================================================
 // Easy AI (Random with basic awareness)
 // =============================================================================
@@ -208,36 +205,3 @@ export function getAIMove(board: Board, aiPlayer: Player, difficulty: Difficulty
   }
 }
 
-/**
- * Evaluates the current board state for a player
- * Returns a score indicating how favorable the position is
- */
-export function evaluateBoard(board: Board, player: Player): number {
-  const { winner } = checkWinner(board)
-
-  if (winner === player) return SCORE_AI_WIN
-  if (winner === getOpponent(player)) return SCORE_PLAYER_WIN
-  if (isBoardFull(board)) return SCORE_DRAW
-
-  // Heuristic evaluation for non-terminal states
-  let score = 0
-
-  // Center control is valuable
-  if (board[1][1] === player) score += 3
-  else if (board[1][1] === getOpponent(player)) score -= 3
-
-  // Corner control is valuable
-  const corners: Position[] = [
-    { row: 0, col: 0 },
-    { row: 0, col: 2 },
-    { row: 2, col: 0 },
-    { row: 2, col: 2 },
-  ]
-
-  for (const corner of corners) {
-    if (board[corner.row][corner.col] === player) score += 2
-    else if (board[corner.row][corner.col] === getOpponent(player)) score -= 2
-  }
-
-  return score
-}

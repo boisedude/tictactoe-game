@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import type { GameState, Difficulty, Position, Move } from '@/types/tictactoe.types'
+import type { GameState, Difficulty, Position, Move, UndoSnapshot } from '@/types/tictactoe.types'
 import { createInitialGameState, placeMark, checkGameOver, isEmpty } from '@/lib/tictactoeRules'
 import { getAIMove } from '@/lib/aiStrategies'
 import { AI_MOVE_DELAY_MS, MOVE_ANIMATION_DELAY_MS } from '@/constants/gameConstants'
@@ -131,6 +131,14 @@ export function useTicTacToeGame(initialDifficulty: Difficulty = 'medium') {
       animationTimeoutRef.current = setTimeout(() => {
         setGameState((prevState) => {
           try {
+            // Save undo snapshot before player move (deep copy board)
+            const undoSnapshot: UndoSnapshot = {
+              board: prevState.board.map(row => [...row]),
+              currentPlayer: prevState.currentPlayer,
+              moveHistory: [...prevState.moveHistory],
+              lastMove: prevState.lastMove,
+            }
+
             const newBoard = placeMark(prevState.board, position, 1)
 
             const move: Move = {
@@ -150,6 +158,7 @@ export function useTicTacToeGame(initialDifficulty: Difficulty = 'medium') {
               winningLine: gameOver.winningLine,
               moveHistory: [...prevState.moveHistory, move],
               lastMove: move,
+              undoHistory: [...prevState.undoHistory, undoSnapshot],
             }
           } catch {
             // Move execution failed - return previous state
@@ -194,6 +203,53 @@ export function useTicTacToeGame(initialDifficulty: Difficulty = 'medium') {
   }, [])
 
   /**
+   * Undo the last move(s)
+   * In VS AI mode: Undo both player's move AND AI's response
+   * In PvP mode: Undo single move
+   */
+  const undoMove = useCallback(() => {
+    // Don't allow undo during animation or AI thinking
+    if (isAnimating || aiMoveScheduledRef.current) {
+      return
+    }
+
+    // Cancel any pending AI move
+    if (aiMoveTimeoutRef.current) {
+      clearTimeout(aiMoveTimeoutRef.current)
+      aiMoveTimeoutRef.current = null
+    }
+    aiMoveScheduledRef.current = false
+
+    setGameState((prevState) => {
+      // Can't undo if no history or game not playing
+      if (prevState.undoHistory.length === 0 || prevState.status !== 'playing') {
+        return prevState
+      }
+
+      // Get the last undo snapshot
+      const newUndoHistory = [...prevState.undoHistory]
+      const snapshot = newUndoHistory.pop()!
+
+      // Restore the state from snapshot
+      return {
+        ...prevState,
+        board: snapshot.board,
+        currentPlayer: snapshot.currentPlayer,
+        moveHistory: snapshot.moveHistory,
+        lastMove: snapshot.lastMove,
+        undoHistory: newUndoHistory,
+        // Clear any game-over state (shouldn't happen, but just in case)
+        status: 'playing',
+        winner: null,
+        winningLine: undefined,
+      }
+    })
+
+    // Clear last placed position visual
+    setLastPlacedPosition(null)
+  }, [isAnimating])
+
+  /**
    * Checks if a position is the last placed mark
    */
   const isLastPlaced = useCallback(
@@ -217,12 +273,27 @@ export function useTicTacToeGame(initialDifficulty: Difficulty = 'medium') {
     [gameState.winningLine]
   )
 
+  /**
+   * Check if undo is available
+   * In VS AI mode: Can only undo when it's player's turn (after AI responded)
+   * In PvP mode: Can undo whenever there's history
+   * Note: We don't check aiMoveScheduledRef here to avoid ref access during render;
+   * the undoMove function handles that check internally.
+   */
+  const canUndo =
+    gameState.status === 'playing' &&
+    gameState.undoHistory.length > 0 &&
+    !isAnimating &&
+    (gameState.mode === 'pvp' || gameState.currentPlayer === 1)
+
   return {
     gameState,
     isAnimating,
     handleCellClick,
     startNewGame,
     changeDifficulty,
+    undoMove,
+    canUndo,
     isLastPlaced,
     isWinningPosition,
   }

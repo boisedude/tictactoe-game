@@ -40,15 +40,6 @@ export const MEDIUM_AI_RANDOM_CHANCE = 0.3
 // Board Configuration
 // =============================================================================
 
-/** Standard Tic-Tac-Toe board size */
-export const TICTACTOE_BOARD_SIZE = 3
-
-/** Number of marks in a row needed to win */
-export const WIN_LENGTH = 3
-
-/** Total cells on the board */
-export const TOTAL_CELLS = 9
-
 /** Center position (strategic advantage) */
 export const CENTER_POSITION = { row: 1, col: 1 }
 
@@ -67,3 +58,10 @@ export const EDGE_POSITIONS = [
   { row: 1, col: 2 },
   { row: 2, col: 1 },
 ]
+
+// =============================================================================
+// Animation Configuration
+// =============================================================================
+
+/** Duration for confetti animation (ms) */
+export const CONFETTI_DURATION_MS = 3000

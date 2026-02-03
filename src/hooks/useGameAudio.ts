@@ -5,8 +5,8 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { STORAGE_KEY_AUDIO_MUTED } from '@/lib/storageKeys'
 
-type SoundEffect = 'markPlace' | 'victory' | 'defeat' | 'draw' | 'click' | 'hover'
 
 // Type declaration for webkit compatibility
 type WebkitWindow = Window &
@@ -16,7 +16,7 @@ type WebkitWindow = Window &
 
 export function useGameAudio() {
   const [isMuted, setIsMuted] = useState(() => {
-    return localStorage.getItem('tictactoe-audio-muted') === 'true'
+    return localStorage.getItem(STORAGE_KEY_AUDIO_MUTED) === 'true'
   })
 
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -37,7 +37,9 @@ export function useGameAudio() {
 
     return () => {
       if (audioContextRef.current) {
-        audioContextRef.current.close()
+        audioContextRef.current.close().catch(() => {
+          // Ignore errors when closing audio context (e.g., already closed)
+        })
       }
     }
   }, [])
@@ -46,7 +48,7 @@ export function useGameAudio() {
   const toggleMute = useCallback(() => {
     setIsMuted((prev) => {
       const newValue = !prev
-      localStorage.setItem('tictactoe-audio-muted', String(newValue))
+      localStorage.setItem(STORAGE_KEY_AUDIO_MUTED, String(newValue))
       return newValue
     })
   }, [])
@@ -160,89 +162,12 @@ export function useGameAudio() {
     })
   }, [isMuted])
 
-  // Play click sound (UI feedback)
-  const playClick = useCallback(() => {
-    if (isMuted || !audioContextRef.current) return
-
-    const ctx = audioContextRef.current
-    const now = ctx.currentTime
-
-    const osc = ctx.createOscillator()
-    const gainNode = ctx.createGain()
-
-    osc.connect(gainNode)
-    gainNode.connect(ctx.destination)
-
-    osc.frequency.setValueAtTime(800, now)
-    osc.frequency.exponentialRampToValueAtTime(400, now + 0.04)
-
-    gainNode.gain.setValueAtTime(0.08, now)
-    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.04)
-
-    osc.type = 'square'
-    osc.start(now)
-    osc.stop(now + 0.04)
-  }, [isMuted])
-
-  // Play hover sound (subtle UI feedback)
-  const playHover = useCallback(() => {
-    if (isMuted || !audioContextRef.current) return
-
-    const ctx = audioContextRef.current
-    const now = ctx.currentTime
-
-    const osc = ctx.createOscillator()
-    const gainNode = ctx.createGain()
-
-    osc.connect(gainNode)
-    gainNode.connect(ctx.destination)
-
-    osc.frequency.setValueAtTime(600, now)
-
-    gainNode.gain.setValueAtTime(0.03, now)
-    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.02)
-
-    osc.type = 'sine'
-    osc.start(now)
-    osc.stop(now + 0.02)
-  }, [isMuted])
-
-  // Play any sound effect
-  const playSound = useCallback(
-    (effect: SoundEffect) => {
-      switch (effect) {
-        case 'markPlace':
-          playMarkPlace()
-          break
-        case 'victory':
-          playVictory()
-          break
-        case 'defeat':
-          playDefeat()
-          break
-        case 'draw':
-          playDraw()
-          break
-        case 'click':
-          playClick()
-          break
-        case 'hover':
-          playHover()
-          break
-      }
-    },
-    [playMarkPlace, playVictory, playDefeat, playDraw, playClick, playHover]
-  )
-
   return {
     isMuted,
     toggleMute,
-    playSound,
     playMarkPlace,
     playVictory,
     playDefeat,
     playDraw,
-    playClick,
-    playHover,
   }
 }
