@@ -1,7 +1,6 @@
 /**
  * Tutorial Component
  * Interactive walkthrough for first-time Tic-Tac-Toe players
- * Designed by M. Cooper for www.mcooper.com
  */
 
 import { useState } from 'react'
@@ -19,6 +18,7 @@ import { OMark } from './OMark'
 
 interface TutorialProps {
   open: boolean
+  opponentName: string
   onClose: () => void
   onComplete: () => void
 }
@@ -30,131 +30,116 @@ interface TutorialStep {
   image?: React.ReactNode
 }
 
-const tutorialSteps: TutorialStep[] = [
-  {
-    title: 'Welcome to Tic-Tac-Toe!',
-    description:
-      "The classic game of X's and O's! It's simple to learn but has surprising depth. Let me show you how to play.",
-    image: (
-      <div className="flex items-center justify-center gap-2">
-        <div className="h-16 w-16 rounded-lg bg-blue-100 flex items-center justify-center">
-          <XMark className="h-10 w-10" />
+const tile = 'flex h-10 w-10 items-center justify-center rounded-md border bg-card'
+
+function MiniBoard({ cells }: { cells: React.ReactNode[] }) {
+  return (
+    <div className="mx-auto grid w-32 grid-cols-3 gap-1">
+      {cells.map((cell, i) => (
+        <div key={i} className={tile}>
+          {cell}
         </div>
-        <div className="h-16 w-16 rounded-lg bg-red-100 flex items-center justify-center">
-          <OMark className="h-10 w-10" />
-        </div>
-      </div>
-    ),
-  },
-  {
-    title: 'The Goal',
-    description:
-      'Your objective is to get THREE of your marks in a row. You can win horizontally, vertically, or diagonally. Simple, right?',
-    tip: 'The game can also end in a draw if all 9 squares are filled with no winner!',
-    image: (
-      <div className="grid grid-cols-3 gap-1 w-32 mx-auto">
-        <div className="h-10 w-10 bg-green-100 border border-green-300 rounded flex items-center justify-center">
-          <XMark className="h-6 w-6" />
-        </div>
-        <div className="h-10 w-10 bg-green-100 border border-green-300 rounded flex items-center justify-center">
-          <XMark className="h-6 w-6" />
-        </div>
-        <div className="h-10 w-10 bg-green-100 border border-green-300 rounded flex items-center justify-center">
-          <XMark className="h-6 w-6" />
-        </div>
-        <div className="h-10 w-10 bg-gray-100 border border-gray-300 rounded flex items-center justify-center">
-          <OMark className="h-6 w-6" />
-        </div>
-        <div className="h-10 w-10 bg-gray-100 border border-gray-300 rounded flex items-center justify-center">
-          <OMark className="h-6 w-6" />
-        </div>
-        <div className="h-10 w-10 bg-gray-100 border border-gray-300 rounded"></div>
-        <div className="h-10 w-10 bg-gray-100 border border-gray-300 rounded"></div>
-        <div className="h-10 w-10 bg-gray-100 border border-gray-300 rounded"></div>
-        <div className="h-10 w-10 bg-gray-100 border border-gray-300 rounded"></div>
-      </div>
-    ),
-  },
-  {
-    title: 'You Play as X',
-    description:
-      'You are X (blue) and the AI plays as O (red). X always goes first, giving you a slight advantage!',
-    image: (
-      <div className="flex items-center justify-center gap-6">
-        <div className="text-center">
-          <div className="h-16 w-16 rounded-lg bg-blue-100 flex items-center justify-center mx-auto">
+      ))}
+    </div>
+  )
+}
+
+function getSteps(opponent: string): TutorialStep[] {
+  return [
+    {
+      title: 'Welcome to tic-tac-toe',
+      description:
+        "The classic game of X's and O's. It is simple to learn but has more depth than it looks.",
+      image: (
+        <div className="flex items-center justify-center gap-2">
+          <div className={`${tile} h-16 w-16`}>
             <XMark className="h-10 w-10" />
           </div>
-          <div className="mt-2 text-sm font-semibold">You (X)</div>
-        </div>
-        <div className="text-2xl font-bold text-gray-400">vs</div>
-        <div className="text-center">
-          <div className="h-16 w-16 rounded-lg bg-red-100 flex items-center justify-center mx-auto">
+          <div className={`${tile} h-16 w-16`}>
             <OMark className="h-10 w-10" />
           </div>
-          <div className="mt-2 text-sm font-semibold">AI (O)</div>
         </div>
-      </div>
-    ),
-  },
-  {
-    title: 'How to Play',
-    description:
-      'Click any empty cell on the 3x3 grid to place your X. Then the AI automatically places its O. Keep alternating until someone wins or all cells are filled.',
-    tip: 'Think ahead! Consider where the AI might play after your move.',
-  },
-  {
-    title: 'Strategy Tips',
-    description:
-      'The CENTER square is the most powerful position - it connects to all winning lines. CORNERS are the next best - they connect to 3 winning lines each.',
-    tip: 'Pro move: Start in the center or a corner, then create two ways to win at once!',
-    image: (
-      <div className="grid grid-cols-3 gap-1 w-32 mx-auto">
-        <div className="h-10 w-10 bg-amber-100 border-2 border-amber-400 rounded flex items-center justify-center text-xs font-bold text-amber-700">
-          3
+      ),
+    },
+    {
+      title: 'The goal',
+      description:
+        'Get three of your marks in a row. You can win horizontally, vertically, or diagonally.',
+      tip: 'The game is a draw if all nine squares fill up with no winner.',
+      image: (
+        <MiniBoard
+          cells={[
+            <XMark key="a" className="h-6 w-6" />,
+            <XMark key="b" className="h-6 w-6" />,
+            <XMark key="c" className="h-6 w-6" />,
+            <OMark key="d" className="h-6 w-6" />,
+            <OMark key="e" className="h-6 w-6" />,
+            null,
+            null,
+            null,
+            null,
+          ]}
+        />
+      ),
+    },
+    {
+      title: 'You play as X',
+      description: `You are X and ${opponent} plays O. X always goes first, which gives you a slight advantage.`,
+      image: (
+        <div className="flex items-center justify-center gap-6">
+          <div className="text-center">
+            <div className={`${tile} mx-auto h-16 w-16`}>
+              <XMark className="h-10 w-10" />
+            </div>
+            <div className="mt-2 text-sm font-semibold">You</div>
+          </div>
+          <div className="text-muted-foreground">vs</div>
+          <div className="text-center">
+            <div className={`${tile} mx-auto h-16 w-16`}>
+              <OMark className="h-10 w-10" />
+            </div>
+            <div className="mt-2 text-sm font-semibold">{opponent}</div>
+          </div>
         </div>
-        <div className="h-10 w-10 bg-gray-100 border border-gray-300 rounded flex items-center justify-center text-xs font-bold text-gray-400">
-          2
-        </div>
-        <div className="h-10 w-10 bg-amber-100 border-2 border-amber-400 rounded flex items-center justify-center text-xs font-bold text-amber-700">
-          3
-        </div>
-        <div className="h-10 w-10 bg-gray-100 border border-gray-300 rounded flex items-center justify-center text-xs font-bold text-gray-400">
-          2
-        </div>
-        <div className="h-10 w-10 bg-green-100 border-2 border-green-400 rounded flex items-center justify-center text-xs font-bold text-green-700">
-          4
-        </div>
-        <div className="h-10 w-10 bg-gray-100 border border-gray-300 rounded flex items-center justify-center text-xs font-bold text-gray-400">
-          2
-        </div>
-        <div className="h-10 w-10 bg-amber-100 border-2 border-amber-400 rounded flex items-center justify-center text-xs font-bold text-amber-700">
-          3
-        </div>
-        <div className="h-10 w-10 bg-gray-100 border border-gray-300 rounded flex items-center justify-center text-xs font-bold text-gray-400">
-          2
-        </div>
-        <div className="h-10 w-10 bg-amber-100 border-2 border-amber-400 rounded flex items-center justify-center text-xs font-bold text-amber-700">
-          3
-        </div>
-      </div>
-    ),
-  },
-  {
-    title: 'Choose Your Challenge',
-    description:
-      "Start on Easy mode to learn the basics. Medium provides more challenge, while Hard mode uses perfect strategy - can you force a draw?",
-    tip: 'Fun fact: With perfect play from both sides, Tic-Tac-Toe always ends in a draw!',
-  },
-  {
-    title: 'Ready to Play!',
-    description:
-      "You're all set! Remember: control the center, watch for winning opportunities, and block your opponent's threats. Good luck!",
-    tip: 'Click "How to Play" anytime to review these instructions.',
-  },
-]
+      ),
+    },
+    {
+      title: 'How a turn works',
+      description: `Click any empty cell on the 3x3 grid to place your X. ${opponent} then places an O. Keep alternating until someone wins or the grid is full.`,
+      tip: `Think ahead. Consider where ${opponent} might play after your move.`,
+    },
+    {
+      title: 'Strategy',
+      description:
+        'The centre square is the strongest: it sits on four winning lines. Corners are next, with three lines each. Edges have only two.',
+      tip: 'Start in the centre or a corner, then try to create two ways to win at once.',
+      image: (
+        <MiniBoard
+          cells={[3, 2, 3, 2, 4, 2, 3, 2, 3].map((n, i) => (
+            <span key={i} className={n > 2 ? 'font-bold text-primary' : 'text-muted-foreground'}>
+              {n}
+            </span>
+          ))}
+        />
+      ),
+    },
+    {
+      title: 'Choose your opponent',
+      description:
+        'Start with Bella to learn the basics. Coop plays a tougher game, and Bentley plays perfectly. Can you force a draw?',
+      tip: 'Click the opponent chip at the top to switch at any time. With perfect play from both sides, tic-tac-toe always ends in a draw.',
+    },
+    {
+      title: 'Ready to play',
+      description:
+        "Take the centre, watch for winning chances, and block your opponent's threats.",
+      tip: 'Click "How to play" any time to see this again.',
+    },
+  ]
+}
 
-export function Tutorial({ open, onClose, onComplete }: TutorialProps) {
+export function Tutorial({ open, opponentName, onClose, onComplete }: TutorialProps) {
+  const tutorialSteps = getSteps(opponentName)
   const [currentStep, setCurrentStep] = useState(0)
   const [dontShowAgain, setDontShowAgain] = useState(false)
   const step = tutorialSteps[currentStep]
@@ -197,21 +182,18 @@ export function Tutorial({ open, onClose, onComplete }: TutorialProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-6">
+        <div className="space-y-4 py-2">
           {/* Visual */}
-          {step.image && <div className="py-4">{step.image}</div>}
+          {step.image && <div className="py-2">{step.image}</div>}
 
           {/* Description */}
           <p className="text-center text-muted-foreground">{step.description}</p>
 
           {/* Tip */}
           {step.tip && (
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950">
-              <div className="mb-1 text-sm font-semibold text-blue-900 dark:text-blue-100">
-                Tip
-              </div>
-              <p className="text-sm text-blue-800 dark:text-blue-200">{step.tip}</p>
-            </div>
+            <p className="rounded-md border bg-secondary p-3 text-sm text-muted-foreground">
+              {step.tip}
+            </p>
           )}
 
           {/* Progress dots */}
@@ -238,31 +220,26 @@ export function Tutorial({ open, onClose, onComplete }: TutorialProps) {
             id="dontShowAgain"
             checked={dontShowAgain}
             onChange={(e) => handleDontShowAgainChange(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+            className="h-4 w-4 accent-[hsl(var(--primary))]"
           />
-          <label htmlFor="dontShowAgain" className="text-sm text-muted-foreground">
+          <label htmlFor="dontShowAgain" className="flex min-h-11 flex-1 items-center text-sm text-muted-foreground">
             Don't show this again
           </label>
         </div>
 
-        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-          <Button variant="ghost" onClick={handleSkip} className="sm:w-auto">
-            Skip Tutorial
+        <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:space-x-0">
+          <Button variant="ghost" onClick={handleSkip} className="h-11 sm:w-auto">
+            Skip
           </Button>
           <div className="flex gap-2">
             {currentStep > 0 && (
-              <Button variant="outline" onClick={handleBack}>
+              <Button variant="outline" onClick={handleBack} className="h-11">
                 Back
               </Button>
             )}
-            <Button onClick={handleNext}>{isLastStep ? "Let's Play!" : 'Next'}</Button>
+            <Button onClick={handleNext} className="h-11">{isLastStep ? 'Play' : 'Next'}</Button>
           </div>
         </DialogFooter>
-
-        {/* Footer */}
-        <div className="text-center text-xs text-muted-foreground">
-          Tutorial by M. Cooper
-        </div>
       </DialogContent>
     </Dialog>
   )

@@ -63,5 +63,3 @@ export const EDGE_POSITIONS = [
 // Animation Configuration
 // =============================================================================
 
-/** Duration for confetti animation (ms) */
-export const CONFETTI_DURATION_MS = 3000

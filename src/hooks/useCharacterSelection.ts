@@ -36,6 +36,17 @@ function getCharacterFromUrl(): CharacterId | null {
   return null
 }
 
+/** Difficulty implied by ?character=, or the fallback when absent. Single source for game and UI. */
+export function getInitialDifficulty(fallback: Difficulty = 'medium'): Difficulty {
+  const urlCharacter = getCharacterFromUrl()
+  return urlCharacter ? characterToDifficulty[urlCharacter] : fallback
+}
+
+/** True when the page was opened with a valid ?character= parameter. */
+export function hasCharacterParam(): boolean {
+  return getCharacterFromUrl() !== null
+}
+
 export function useCharacterSelection(initialDifficulty: Difficulty = 'medium') {
   const [character, setCharacter] = useState<Character>(() => {
     // Priority: URL parameter > initial difficulty

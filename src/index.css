@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../shared/arcade.css";
 
 @theme {
   /* Colors */
@@ -27,74 +28,13 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  /* Animations */
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-  --animate-mark-draw: mark-draw 0.5s ease-out forwards;
-  --animate-mark-pop: mark-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  --animate-cell-highlight: cell-highlight 2s ease-in-out infinite;
-  --animate-win-pulse: win-pulse 1s ease-in-out infinite;
-  --animate-win-glow: win-glow 1.5s ease-in-out infinite;
-  --animate-character-entrance: character-entrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  --animate-button-press: button-press 0.2s ease-out;
-  --animate-cell-hover: cell-hover 0.2s ease-out forwards;
-  --animate-confetti: confetti 1s ease-out forwards;
-  --animate-victory-shake: victory-shake 0.5s ease-in-out;
-  --animate-drop-in: drop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  /* Animations: only the mark-draw set */
   --animate-draw-x-line1: draw-x-line1 0.25s ease-out forwards;
   --animate-draw-x-line2: draw-x-line2 0.25s ease-out 0.15s forwards;
   --animate-draw-o: draw-o 0.4s ease-out forwards;
   --animate-winning-line: winning-line 0.6s ease-out forwards;
 
   /* Keyframes */
-  @keyframes accordion-down {
-    from { height: 0; }
-    to { height: var(--radix-accordion-content-height); }
-  }
-
-  @keyframes accordion-up {
-    from { height: var(--radix-accordion-content-height); }
-    to { height: 0; }
-  }
-
-  @keyframes mark-draw {
-    0% {
-      stroke-dashoffset: 100;
-      opacity: 0;
-    }
-    100% {
-      stroke-dashoffset: 0;
-      opacity: 1;
-    }
-  }
-
-  @keyframes mark-pop {
-    0% {
-      transform: scale(0);
-      opacity: 0;
-    }
-    50% {
-      transform: scale(1.15);
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  @keyframes drop-in {
-    0% {
-      transform: scale(0.3) translateY(-30px);
-      opacity: 0;
-    }
-    60% {
-      transform: scale(1.1) translateY(5px);
-    }
-    100% {
-      transform: scale(1) translateY(0);
-      opacity: 1;
-    }
-  }
 
   @keyframes draw-x-line1 {
     0% {
@@ -129,255 +69,19 @@
     }
   }
 
-  @keyframes win-pulse {
-    0%, 100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-    50% {
-      transform: scale(1.08);
-      opacity: 0.9;
-    }
-  }
-
-  @keyframes win-glow {
-    0%, 100% {
-      filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.6));
-    }
-    50% {
-      filter: drop-shadow(0 0 20px rgba(250, 204, 21, 1)) drop-shadow(0 0 40px rgba(250, 204, 21, 0.6));
-    }
-  }
-
-  @keyframes cell-highlight {
-    0%, 100% {
-      box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0);
-    }
-    50% {
-      box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.3);
-    }
-  }
-
-  @keyframes cell-hover {
-    0% {
-      transform: scale(1);
-      background-color: rgba(99, 102, 241, 0.05);
-    }
-    100% {
-      transform: scale(1.02);
-      background-color: rgba(99, 102, 241, 0.1);
-    }
-  }
-
-  @keyframes character-entrance {
-    0% {
-      transform: scale(0.5) rotate(-10deg);
-      opacity: 0;
-    }
-    60% {
-      transform: scale(1.1) rotate(5deg);
-    }
-    100% {
-      transform: scale(1) rotate(0deg);
-      opacity: 1;
-    }
-  }
-
-  @keyframes button-press {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(0.95);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-
-  @keyframes confetti {
-    0% {
-      transform: translateY(0) rotate(0deg);
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(-100px) rotate(720deg);
-      opacity: 0;
-    }
-  }
-
-  @keyframes victory-shake {
-    0%, 100% {
-      transform: translateX(0);
-    }
-    10%, 30%, 50%, 70%, 90% {
-      transform: translateX(-4px);
-    }
-    20%, 40%, 60%, 80% {
-      transform: translateX(4px);
-    }
-  }
-
   @keyframes winning-line {
     0% {
-      stroke-dashoffset: 500;
-      opacity: 0;
+      stroke-dashoffset: 1;
     }
     100% {
       stroke-dashoffset: 0;
-      opacity: 1;
     }
   }
 
-  @keyframes confetti-fall {
-    0% {
-      transform: translateY(0) rotate(0deg) scale(1);
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(100vh) rotate(720deg) scale(0.5);
-      opacity: 0;
-    }
-  }
-}
-
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --primary-rgb: 23, 23, 23;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 35%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --primary-rgb: 250, 250, 250;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-  }
 }
 
 @layer base {
   * {
     @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-@layer utilities {
-  /* Reduce motion preferences */
-  @media (prefers-reduced-motion: reduce) {
-    .animate-mark-draw,
-    .animate-mark-pop,
-    .animate-win-pulse,
-    .animate-win-glow,
-    .animate-cell-highlight,
-    .animate-cell-hover,
-    .animate-character-entrance,
-    .animate-button-press,
-    .animate-confetti,
-    .animate-victory-shake,
-    .animate-drop-in,
-    .animate-draw-x-line1,
-    .animate-draw-x-line2,
-    .animate-draw-o,
-    .animate-winning-line {
-      animation: none;
-      transition: none;
-    }
-  }
-
-  /* Custom scrollbar */
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
-    border-radius: 9999px;
-  }
-
-  .scrollbar-thumb-muted-foreground\/20::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--muted-foreground) / 0.2);
-  }
-
-  .scrollbar-track-transparent::-webkit-scrollbar-track {
-    background-color: transparent;
-  }
-
-  /* Board texture pattern */
-  .board-texture {
-    background-image:
-      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255, 182, 193, 0.05) 0%, transparent 50%),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  }
-
-  /* Cell patterns and textures */
-  .cell-empty-pattern {
-    background-image:
-      radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.03) 0%, transparent 70%);
-  }
-
-  .cell-filled-pattern {
-    background-image:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
-      radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
-  }
-
-  /* Grid line styling - neon effect */
-  .grid-line-neon {
-    box-shadow:
-      inset 0 0 10px rgba(99, 102, 241, 0.3),
-      inset 0 0 20px rgba(99, 102, 241, 0.1);
-  }
-
-  /* Winning cell glow */
-  .winning-cell-glow {
-    box-shadow:
-      inset 0 0 20px rgba(250, 204, 21, 0.4),
-      0 0 30px rgba(250, 204, 21, 0.3);
-  }
-
-  /* Hover glow effect for empty cells */
-  .cell-hover-glow {
-    box-shadow:
-      inset 0 0 15px rgba(99, 102, 241, 0.2),
-      0 0 10px rgba(99, 102, 241, 0.1);
   }
 }

@@ -51,9 +51,7 @@ export function LeaderboardDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>Your Stats</span>
-          </DialogTitle>
+          <DialogTitle>Your stats</DialogTitle>
           <DialogDescription>
             {isEditing ? (
               <div className="flex items-center gap-2 pt-2">
@@ -69,14 +67,14 @@ export function LeaderboardDialog({
                   maxLength={20}
                   className="flex-1"
                 />
-                <Button size="sm" onClick={handleSaveName}>
+                <Button size="sm" className="h-11" onClick={handleSaveName}>
                   Save
                 </Button>
               </div>
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="text-left hover:underline focus:underline focus:outline-none rounded px-1 -mx-1 hover:bg-muted focus:bg-muted focus:ring-2 focus:ring-ring transition-colors"
+                className="min-h-11 rounded text-left hover:underline"
               >
                 Player: {stats.playerName}
               </button>
@@ -84,42 +82,20 @@ export function LeaderboardDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {/* Main Stats */}
-          <div className="space-y-2">
-            <h3 className="mb-2 text-sm font-semibold">Game Record</h3>
-            <StatRow label="Total Games" value={stats.totalGames} />
-            <StatRow label="Wins" value={stats.wins} highlight="green" />
-            <StatRow label="Losses" value={stats.losses} highlight="red" />
-            <StatRow label="Draws" value={stats.draws} />
-            <StatRow label="Win Rate" value={`${winRate}%`} />
-          </div>
-
-          {/* Streaks */}
-          <div className="border-t pt-4">
-            <h3 className="mb-2 text-sm font-semibold">Streaks</h3>
-            <div className="space-y-2">
-              <StatRow
-                label="Current Win Streak"
-                value={stats.winStreak}
-                highlight={stats.winStreak > 0 ? 'green' : undefined}
-              />
-              <StatRow label="Longest Win Streak" value={stats.longestWinStreak} />
-            </div>
-          </div>
-
-          {/* Achievements */}
-          <div className="border-t pt-4">
-            <h3 className="mb-2 text-sm font-semibold">Best Records</h3>
-            <div className="space-y-2">
-              <StatRow
-                label="Fastest Win"
-                value={stats.fastestWin !== null ? `${stats.fastestWin} moves` : 'N/A'}
-              />
-              <StatRow label="Perfect Games" value={stats.perfectGames} />
-            </div>
-          </div>
-        </div>
+        <dl className="divide-y text-sm">
+          <StatRow label="Games" value={stats.totalGames} />
+          <StatRow label="Wins" value={stats.wins} />
+          <StatRow label="Losses" value={stats.losses} />
+          <StatRow label="Draws" value={stats.draws} />
+          <StatRow label="Win rate" value={`${winRate}%`} />
+          <StatRow label="Current win streak" value={stats.winStreak} />
+          <StatRow label="Longest win streak" value={stats.longestWinStreak} />
+          <StatRow
+            label="Fastest win"
+            value={stats.fastestWin !== null ? `${stats.fastestWin} moves` : 'None yet'}
+          />
+          <StatRow label="Perfect games" value={stats.perfectGames} />
+        </dl>
 
         <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-between">
           {showResetConfirm ? (
@@ -130,7 +106,7 @@ export function LeaderboardDialog({
                   size="sm"
                   variant="destructive"
                   onClick={handleResetStats}
-                  className="h-8"
+                  className="h-11"
                   aria-label="Confirm reset all statistics"
                 >
                   Confirm
@@ -139,7 +115,7 @@ export function LeaderboardDialog({
                   size="sm"
                   variant="outline"
                   onClick={() => setShowResetConfirm(false)}
-                  className="h-8"
+                  className="h-11"
                   aria-label="Cancel reset"
                 >
                   Cancel
@@ -152,15 +128,15 @@ export function LeaderboardDialog({
                 variant="destructive"
                 onClick={() => setShowResetConfirm(true)}
                 size="sm"
-                className="w-full sm:w-auto"
+                className="h-11 w-full sm:w-auto"
                 aria-label="Reset all statistics"
               >
-                Reset Stats
+                Reset stats
               </Button>
               <Button
                 onClick={onClose}
                 variant="outline"
-                className="w-full sm:w-auto"
+                className="h-11 w-full sm:w-auto"
                 aria-label="Close statistics dialog"
               >
                 Close
@@ -173,29 +149,11 @@ export function LeaderboardDialog({
   )
 }
 
-function StatRow({
-  label,
-  value,
-  highlight,
-}: {
-  label: string
-  value: string | number
-  highlight?: 'green' | 'red'
-}) {
+function StatRow({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3 hover:bg-muted transition-colors">
-      <span className="text-sm font-medium">{label}</span>
-      <span
-        className={`text-lg font-bold ${
-          highlight === 'green'
-            ? 'text-green-600'
-            : highlight === 'red'
-              ? 'text-red-600'
-              : ''
-        }`}
-      >
-        {value}
-      </span>
+    <div className="flex items-center justify-between py-2">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="font-semibold">{value}</dd>
     </div>
   )
 }

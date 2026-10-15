@@ -9,14 +9,16 @@ import { GameControls } from '@/components/GameControls'
 import { VictoryDialog } from '@/components/VictoryDialog'
 import { LeaderboardDialog } from '@/components/LeaderboardDialog'
 import { Tutorial } from '@/components/Tutorial'
-import { Confetti } from '@/components/Confetti'
+import { OpponentChip } from '@/components/OpponentChip'
+import { Button } from '@/components/ui/button'
 import { useTicTacToeGame } from '@/hooks/useTicTacToeGame'
 import { useLeaderboard } from '@/hooks/useLeaderboard'
 import { useGameAudio } from '@/hooks/useGameAudio'
-import { useCharacterSelection } from '@/hooks/useCharacterSelection'
+import { useCharacterSelection, getInitialDifficulty, hasCharacterParam } from '@/hooks/useCharacterSelection'
 import { useBentleyStats } from '@/hooks/useBentleyStats'
+import { recordPlayerBeatBentley, recordBentleyBeatPlayer } from '@shared/arcadeRecord'
 import { countThreats } from '@/lib/tictactoeRules'
-import { CONFETTI_DURATION_MS } from '@/constants/gameConstants'
+import { ArrowLeftIcon, VolumeIcon, VolumeOffIcon, HelpIcon } from '@shared/icons'
 import { STORAGE_KEY_TUTORIAL_COMPLETED } from '@/lib/storageKeys'
 import type { Difficulty } from '@/types/tictactoe.types'
 
@@ -31,7 +33,7 @@ export function TicTacToeGame() {
     canUndo,
     isLastPlaced,
     isWinningPosition,
-  } = useTicTacToeGame()
+  } = useTicTacToeGame(getInitialDifficulty())
 
   const { character, changeCharacter } = useCharacterSelection(gameState.difficulty)
   const { stats, recordWin, recordLoss, recordDraw, updatePlayerName, resetStats } = useLeaderboard()
@@ -42,31 +44,29 @@ export function TicTacToeGame() {
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   // Initialize tutorial completed state from localStorage (state value not used, but setter is)
   const [, setTutorialCompleted] = useState(() => {
-    return localStorage.getItem(STORAGE_KEY_TUTORIAL_COMPLETED) === 'true'
-  })
-  // Show tutorial on first visit (if not previously completed)
-  const [showTutorial, setShowTutorial] = useState(() => {
-    return localStorage.getItem(STORAGE_KEY_TUTORIAL_COMPLETED) !== 'true'
-  })
-  const [prevStatus, setPrevStatus] = useState(gameState.status)
-  const [showConfetti, setShowConfetti] = useState(false)
-  const [confettiKey, setConfettiKey] = useState(0)
-  const confettiTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Show confetti when player wins
-  const isPlayerVictory = gameState.status === 'won' && gameState.winner === 1
-
-  // Cleanup confetti timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (confettiTimeoutRef.current) {
-        clearTimeout(confettiTimeoutRef.current)
-      }
+    try {
+      return localStorage.getItem(STORAGE_KEY_TUTORIAL_COMPLETED) === 'true'
+    } catch {
+      return false
     }
-  }, [])
-
+  })
+  // Show tutorial only on the first visit, and never when arriving from the arcade with ?character=
+  const [showTutorial, setShowTutorial] = useState(() => {
+    if (hasCharacterParam()) return false
+    try {
+      return localStorage.getItem(STORAGE_KEY_TUTORIAL_COMPLETED) !== 'true'
+    } catch {
+      return false
+    }
+  })
+  // Guards the arcade record so a finished game posts exactly once
+  const recordedRef = useRef(false)
+  const [prevStatus, setPrevStatus] = useState(gameState.status)
   // Detect game end - setState in effect is intentional here as we're responding to game status changes
   useEffect(() => {
+    if (gameState.status === 'playing') {
+      recordedRef.current = false
+    }
     if (prevStatus === 'playing' && gameState.status !== 'playing') {
       const totalMoves = gameState.moveHistory.length
       const isAgainstBentley = gameState.difficulty === 'hard'
@@ -81,6 +81,10 @@ export function TicTacToeGame() {
           recordWin(totalMoves, isPerfect)
           if (isAgainstBentley) {
             recordBentleyWin(totalMoves)
+            if (!recordedRef.current) {
+              recordedRef.current = true
+              void recordPlayerBeatBentley()
+            }
           }
         } else if (gameState.winner === 2) {
           // AI wins
@@ -88,6 +92,10 @@ export function TicTacToeGame() {
           recordLoss()
           if (isAgainstBentley) {
             recordBentleyLoss(totalMoves)
+            if (!recordedRef.current) {
+              recordedRef.current = true
+              void recordBentleyBeatPlayer()
+            }
           }
         }
       } else if (gameState.status === 'draw') {
@@ -100,17 +108,6 @@ export function TicTacToeGame() {
 
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowVictoryDialog(true)
-
-      // Show confetti for player victory
-      if (gameState.winner === 1) {
-        setConfettiKey(prev => prev + 1)
-        setShowConfetti(true)
-        // Clear any existing timeout before setting a new one
-        if (confettiTimeoutRef.current) {
-          clearTimeout(confettiTimeoutRef.current)
-        }
-        confettiTimeoutRef.current = setTimeout(() => setShowConfetti(false), CONFETTI_DURATION_MS)
-      }
     }
 
      
@@ -177,129 +174,125 @@ export function TicTacToeGame() {
 
   const handleTutorialComplete = useCallback(() => {
     setTutorialCompleted(true)
-    localStorage.setItem(STORAGE_KEY_TUTORIAL_COMPLETED, 'true')
+    try {
+      localStorage.setItem(STORAGE_KEY_TUTORIAL_COMPLETED, 'true')
+    } catch {
+      // storage unavailable; the tutorial may show again next visit
+    }
   }, [])
 
   const handleShowTutorial = useCallback(() => {
     setShowTutorial(true)
   }, [])
 
+  const opponent = character.name
+  const turnText =
+    gameState.status === 'won'
+      ? gameState.winner === 1
+        ? 'You won'
+        : `${opponent} won`
+      : gameState.status === 'draw'
+        ? 'Draw'
+        : gameState.currentPlayer === 1
+          ? 'Your turn'
+          : `${opponent} is thinking`
+  const turnActive =
+    gameState.status !== 'playing' ? 'over' : gameState.currentPlayer === 1 ? 'you' : 'opponent'
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-start bg-gradient-to-br from-blue-50 to-indigo-100 p-2 sm:p-4 sm:justify-center">
-      {/* Skip to main content link for keyboard users */}
+    <div className="arcade-page">
       <a
         href="#game-board"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-gray-800 focus:shadow-lg focus:ring-2 focus:ring-blue-500"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:text-foreground"
       >
         Skip to game board
       </a>
-      {/* Return to Arcade Button */}
-      <div className="w-full max-w-md mb-3 sm:mb-4">
-        <a href="https://www.mcooper.com/arcade/" className="block">
-          <button
-            className="w-full sm:w-auto h-10 sm:h-11 px-4 text-sm sm:text-base font-semibold border-2 border-gray-300 rounded-lg bg-white hover:bg-blue-50 hover:border-blue-400 transition-colors"
+
+      <header className="arcade-topbar">
+        <div className="flex flex-1 items-center">
+          <a
+            href="https://www.mcooper.com/arcade/"
+            className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
-            ← Return to Arcade
-          </button>
-        </a>
-      </div>
-
-      {/* Header */}
-      <div className="mb-6 text-center">
-        <h1 className="mb-2 text-4xl font-bold text-gray-800">Tic-Tac-Toe</h1>
-        <p className="text-lg text-gray-700">Challenge {character.name} {character.emoji}</p>
-      </div>
-
-      {/* Character Info */}
-      <div className="mb-6 flex items-center gap-4 rounded-xl bg-white p-4 shadow-lg hover:shadow-xl transition-shadow">
-        <img
-          src={character.avatar}
-          alt={character.name}
-          className="h-16 w-16 rounded-full border-2 border-blue-300 object-cover"
-          onError={(e) => {
-            e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23ddd"/></svg>'
-          }}
-        />
-        <div>
-          <h3 className="text-xl font-bold text-gray-800">
-            {character.name}
-          </h3>
-          <p className="text-sm text-gray-700">{character.playingStyle}</p>
+            <ArrowLeftIcon size={18} />
+            Arcade
+          </a>
         </div>
-      </div>
+        <h1 className="arcade-display sr-only text-xl sm:not-sr-only">Tic-tac-toe</h1>
+        <div className="flex flex-1 items-center justify-end gap-1">
+          <OpponentChip
+            character={character}
+            difficulty={gameState.difficulty}
+            onDifficultyChange={handleDifficultyChange}
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-11 w-11 shrink-0"
+            onClick={toggleMute}
+            aria-label={isMuted ? 'Unmute sound effects' : 'Mute sound effects'}
+          >
+            {isMuted ? <VolumeOffIcon /> : <VolumeIcon />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-11 w-11 shrink-0"
+            onClick={handleShowTutorial}
+            aria-label="How to play"
+          >
+            <HelpIcon />
+          </Button>
+        </div>
+      </header>
 
-      {/* Audio Toggle */}
-      <button
-        onClick={toggleMute}
-        className="mb-4 flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow hover:bg-gray-50 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
-        aria-label={isMuted ? 'Unmute sound effects' : 'Mute sound effects'}
-      >
-        {isMuted ? (
-          <>
-            <span>&#128263;</span> Sound Off
-          </>
-        ) : (
-          <>
-            <span>&#128266;</span> Sound On
-          </>
-        )}
-      </button>
+      <main className="arcade-stage">
+        <div className="arcade-score" aria-live="polite">
+          <div>
+            <strong>{stats.wins}</strong>
+            You
+          </div>
+          <div className="arcade-turn" data-active={turnActive}>
+            {turnText}
+          </div>
+          <div>
+            <strong>{stats.losses}</strong>
+            {opponent}
+          </div>
+        </div>
 
-      {/* Game Status - Screen Reader Announcement */}
-      <div aria-live="polite" className="sr-only">
-        {gameState.status === 'playing' && (
-          gameState.currentPlayer === 1
-            ? "Your turn"
-            : `${character.name}'s turn`
-        )}
-        {gameState.status === 'won' && gameState.winner === 1 && "You win!"}
-        {gameState.status === 'won' && gameState.winner === 2 && `${character.name} wins!`}
-        {gameState.status === 'draw' && "It's a draw!"}
-      </div>
+        <div id="game-board" className="flex w-full justify-center">
+          <Board
+            board={gameState.board}
+            onCellClick={handleCellClick}
+            isLastPlaced={isLastPlaced}
+            isWinningPosition={isWinningPosition}
+            disabled={isAnimating || gameState.status !== 'playing' || gameState.currentPlayer !== 1}
+            winningLine={gameState.winningLine}
+          />
+        </div>
 
-      {/* Board */}
-      <div id="game-board" className="mb-8">
-        <Board
-          board={gameState.board}
-          onCellClick={handleCellClick}
-          isLastPlaced={isLastPlaced}
-          isWinningPosition={isWinningPosition}
-          disabled={isAnimating || gameState.status !== 'playing' || gameState.currentPlayer !== 1}
-          winningLine={gameState.winningLine}
-          isVictory={isPlayerVictory}
+        <GameControls
+          onNewGame={handleNewGame}
+          onShowLeaderboard={() => setShowLeaderboard(true)}
+          onShowTutorial={handleShowTutorial}
+          onUndo={undoMove}
+          canUndo={canUndo}
+          disabled={isAnimating}
         />
-      </div>
+      </main>
 
-      {/* Victory Confetti */}
-      <Confetti isActive={showConfetti} particleCount={60} animationKey={confettiKey} />
-
-      {/* Game Controls */}
-      <GameControls
-        difficulty={gameState.difficulty}
-        onDifficultyChange={handleDifficultyChange}
-        onNewGame={handleNewGame}
-        onShowLeaderboard={() => setShowLeaderboard(true)}
-        onShowTutorial={handleShowTutorial}
-        onUndo={undoMove}
-        canUndo={canUndo}
-        gameMode={gameState.mode}
-        currentPlayer={gameState.currentPlayer}
-        character={character}
-        disabled={isAnimating}
-      />
-
-      {/* Victory Dialog */}
       {showVictoryDialog && (
         <VictoryDialog
           open={showVictoryDialog}
           winner={gameState.winner}
           character={character}
+          stats={stats}
           onPlayAgain={handleNewGame}
           onClose={() => setShowVictoryDialog(false)}
         />
       )}
 
-      {/* Leaderboard Dialog */}
       {showLeaderboard && (
         <LeaderboardDialog
           open={showLeaderboard}
@@ -310,29 +303,14 @@ export function TicTacToeGame() {
         />
       )}
 
-      {/* Tutorial Dialog */}
       {showTutorial && (
         <Tutorial
           open={showTutorial}
+          opponentName={opponent}
           onClose={() => setShowTutorial(false)}
           onComplete={handleTutorialComplete}
         />
       )}
-
-      {/* Footer */}
-      <div className="mt-8 text-center text-sm text-gray-600">
-        <p>
-          Designed by{' '}
-          <a
-            href="https://www.mcooper.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
-          >
-            M. Cooper
-          </a>
-        </p>
-      </div>
     </div>
   )
 }
