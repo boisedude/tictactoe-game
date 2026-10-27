@@ -11,6 +11,15 @@ import { LeaderboardDialog } from '@/components/LeaderboardDialog'
 import { Tutorial } from '@/components/Tutorial'
 import { OpponentChip } from '@/components/OpponentChip'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { getCharacterById } from '@shared/characters'
 import { useTicTacToeGame } from '@/hooks/useTicTacToeGame'
 import { useLeaderboard } from '@/hooks/useLeaderboard'
 import { useGameAudio } from '@/hooks/useGameAudio'
@@ -22,13 +31,14 @@ import { ArrowLeftIcon, VolumeIcon, VolumeOffIcon, HelpIcon } from '@shared/icon
 import { STORAGE_KEY_TUTORIAL_COMPLETED } from '@/lib/storageKeys'
 import type { Difficulty } from '@/types/tictactoe.types'
 
+const DIFFICULTY_TO_ID = { easy: 'bella', medium: 'coop', hard: 'bentley' } as const
+
 export function TicTacToeGame() {
   const {
     gameState,
     isAnimating,
     handleCellClick,
     startNewGame,
-    changeDifficulty,
     undoMove,
     canUndo,
     isLastPlaced,
@@ -164,12 +174,28 @@ export function TicTacToeGame() {
     startNewGame()
   }, [startNewGame])
 
+  // Changing opponent always starts a fresh game, so a game cannot be
+  // finished against a different opponent than it began with.
+  const [pendingDifficulty, setPendingDifficulty] = useState<Difficulty | null>(null)
+  const switchOpponent = useCallback(
+    (difficulty: Difficulty) => {
+      setShowVictoryDialog(false)
+      changeCharacter(difficulty)
+      startNewGame(difficulty)
+    },
+    [changeCharacter, startNewGame]
+  )
+  const gameInProgress = gameState.status === 'playing' && gameState.moveHistory.length > 0
   const handleDifficultyChange = useCallback(
     (difficulty: Difficulty) => {
-      changeDifficulty(difficulty)
-      changeCharacter(difficulty)
+      if (difficulty === gameState.difficulty) return
+      if (gameInProgress) {
+        setPendingDifficulty(difficulty)
+        return
+      }
+      switchOpponent(difficulty)
     },
-    [changeDifficulty, changeCharacter]
+    [gameState.difficulty, gameInProgress, switchOpponent]
   )
 
   const handleTutorialComplete = useCallback(() => {
@@ -281,6 +307,36 @@ export function TicTacToeGame() {
           disabled={isAnimating}
         />
       </main>
+
+      {pendingDifficulty && (
+        <Dialog open onOpenChange={(o) => !o && setPendingDifficulty(null)}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>
+                Play {getCharacterById(DIFFICULTY_TO_ID[pendingDifficulty]).name} instead?
+              </DialogTitle>
+              <DialogDescription>
+                This ends the current game and starts a new one. It will not count toward any record.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:justify-end">
+              <Button
+                className="h-11"
+                onClick={() => {
+                  const d = pendingDifficulty
+                  setPendingDifficulty(null)
+                  switchOpponent(d)
+                }}
+              >
+                New game
+              </Button>
+              <Button className="h-11" variant="ghost" onClick={() => setPendingDifficulty(null)}>
+                Keep playing
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {showVictoryDialog && (
         <VictoryDialog

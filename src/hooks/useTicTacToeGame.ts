@@ -173,9 +173,9 @@ export function useTicTacToeGame(initialDifficulty: Difficulty = 'medium') {
   )
 
   /**
-   * Starts a new game
+   * Starts a new game, optionally against a different opponent
    */
-  const startNewGame = useCallback(() => {
+  const startNewGame = useCallback((difficulty?: Difficulty) => {
     // Clear any pending timeouts
     if (aiMoveTimeoutRef.current) {
       clearTimeout(aiMoveTimeoutRef.current)
@@ -187,7 +187,7 @@ export function useTicTacToeGame(initialDifficulty: Difficulty = 'medium') {
     }
     aiMoveScheduledRef.current = false
 
-    setGameState(createInitialGameState('pvc', gameState.difficulty))
+    setGameState(createInitialGameState('pvc', difficulty ?? gameState.difficulty))
     setLastPlacedPosition(null)
     setIsAnimating(false)
   }, [gameState.difficulty])
