@@ -3,7 +3,7 @@
  * Main game interface for Tic-Tac-Toe
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Board } from '@/components/Board'
 import { GameControls } from '@/components/GameControls'
 import { VictoryDialog } from '@/components/VictoryDialog'
@@ -25,7 +25,6 @@ import { useLeaderboard } from '@/hooks/useLeaderboard'
 import { useGameAudio } from '@/hooks/useGameAudio'
 import { useCharacterSelection, getInitialDifficulty, hasCharacterParam } from '@/hooks/useCharacterSelection'
 import { useBentleyStats } from '@/hooks/useBentleyStats'
-import { recordPlayerBeatBentley, recordBentleyBeatPlayer } from '@shared/arcadeRecord'
 import { countThreats } from '@/lib/tictactoeRules'
 import { ArrowLeftIcon, VolumeIcon, VolumeOffIcon, HelpIcon } from '@shared/icons'
 import { STORAGE_KEY_TUTORIAL_COMPLETED } from '@/lib/storageKeys'
@@ -69,14 +68,9 @@ export function TicTacToeGame() {
       return false
     }
   })
-  // Guards the arcade record so a finished game posts exactly once
-  const recordedRef = useRef(false)
   const [prevStatus, setPrevStatus] = useState(gameState.status)
   // Detect game end - setState in effect is intentional here as we're responding to game status changes
   useEffect(() => {
-    if (gameState.status === 'playing') {
-      recordedRef.current = false
-    }
     if (prevStatus === 'playing' && gameState.status !== 'playing') {
       const totalMoves = gameState.moveHistory.length
       const isAgainstBentley = gameState.difficulty === 'hard'
@@ -91,10 +85,6 @@ export function TicTacToeGame() {
           recordWin(totalMoves, isPerfect)
           if (isAgainstBentley) {
             recordBentleyWin(totalMoves)
-            if (!recordedRef.current) {
-              recordedRef.current = true
-              void recordPlayerBeatBentley()
-            }
           }
         } else if (gameState.winner === 2) {
           // AI wins
@@ -102,10 +92,6 @@ export function TicTacToeGame() {
           recordLoss()
           if (isAgainstBentley) {
             recordBentleyLoss(totalMoves)
-            if (!recordedRef.current) {
-              recordedRef.current = true
-              void recordBentleyBeatPlayer()
-            }
           }
         }
       } else if (gameState.status === 'draw') {
